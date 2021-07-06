@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+
 def downsample(img, factor):
     """
     Downsample an image along both dimensions by some factor
@@ -9,11 +10,12 @@ def downsample(img, factor):
     assert img.shape[0] % factor == 0
     assert img.shape[1] % factor == 0
 
-    img = img.reshape([img.shape[0]//factor, factor, img.shape[1]//factor, factor, 3])
+    img = img.reshape([img.shape[0] // factor, factor, img.shape[1] // factor, factor, 3])
     img = img.mean(axis=3)
     img = img.mean(axis=1)
 
     return img
+
 
 def fill_coords(img, fn, color):
     """
@@ -29,6 +31,7 @@ def fill_coords(img, fn, color):
 
     return img
 
+
 def rotate_fn(fin, cx, cy, theta):
     def fout(x, y):
         x = x - cx
@@ -41,12 +44,13 @@ def rotate_fn(fin, cx, cy, theta):
 
     return fout
 
+
 def point_in_line(x0, y0, x1, y1, r):
     p0 = np.array([x0, y0])
     p1 = np.array([x1, y1])
-    dir = p1 - p0
-    dist = np.linalg.norm(dir)
-    dir = dir / dist
+    _dir = p1 - p0
+    dist = np.linalg.norm(_dir)
+    _dir = _dir / dist
 
     xmin = min(x0, x1) - r
     xmax = max(x0, x1) + r
@@ -62,24 +66,29 @@ def point_in_line(x0, y0, x1, y1, r):
         pq = q - p0
 
         # Closest point on line
-        a = np.dot(pq, dir)
+        a = np.dot(pq, _dir)
         a = np.clip(a, 0, dist)
-        p = p0 + a * dir
+        p = p0 + a * _dir
 
         dist_to_line = np.linalg.norm(q - p)
         return dist_to_line <= r
 
     return fn
 
+
 def point_in_circle(cx, cy, r):
     def fn(x, y):
-        return (x-cx)*(x-cx) + (y-cy)*(y-cy) <= r * r
+        return (x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r
+
     return fn
+
 
 def point_in_rect(xmin, xmax, ymin, ymax):
     def fn(x, y):
-        return x >= xmin and x <= xmax and y >= ymin and y <= ymax
+        return xmin <= x <= xmax and ymin <= y <= ymax
+
     return fn
+
 
 def point_in_triangle(a, b, c):
     a = np.array(a)
@@ -107,6 +116,7 @@ def point_in_triangle(a, b, c):
         return (u >= 0) and (v >= 0) and (u + v) < 1
 
     return fn
+
 
 def highlight_img(img, color=(255, 255, 255), alpha=0.30):
     """

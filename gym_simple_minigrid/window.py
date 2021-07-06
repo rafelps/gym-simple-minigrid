@@ -1,13 +1,13 @@
 import sys
-import numpy as np
 
 # Only ask users to install matplotlib if they actually need it
 try:
     import matplotlib.pyplot as plt
-except:
+except ModuleNotFoundError:
     print('To display the environment in a window, please install matplotlib, eg:')
     print('pip3 install --user matplotlib')
     sys.exit(-1)
+
 
 class Window:
     """
@@ -34,7 +34,7 @@ class Window:
         # Flag indicating the window was closed
         self.closed = False
 
-        def close_handler(evt):
+        def close_handler(_):
             self.closed = True
 
         self.fig.canvas.mpl_connect('close_event', close_handler)
@@ -55,7 +55,8 @@ class Window:
         # This is needed for interactive mode to work properly
         plt.pause(0.001)
 
-    def set_caption(self, text):
+    @staticmethod
+    def set_caption(text):
         """
         Set/update the caption text below the image
         """
@@ -70,7 +71,8 @@ class Window:
         # Keyboard handler
         self.fig.canvas.mpl_connect('key_press_event', key_handler)
 
-    def show(self, block=True):
+    @staticmethod
+    def show(block=True):
         """
         Show the window, and start an event loop
         """
