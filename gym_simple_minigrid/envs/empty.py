@@ -1,92 +1,86 @@
-from gym_minigrid.minigrid import *
-from gym_minigrid.register import register
+# -*- coding: utf-8 -*-
+from ..minigrid import *
+from ..register import register
 
-class EmptyEnv(MiniGridEnv):
-    """
-    Empty grid environment, no obstacles, sparse reward
-    """
+from ..controller.optimal import get_n_steps, optimal_action
 
-    def __init__(
-        self,
-        size=8,
-        agent_start_pos=(1,1),
-        agent_start_dir=0,
-    ):
-        self.agent_start_pos = agent_start_pos
-        self.agent_start_dir = agent_start_dir
 
-        super().__init__(
-            grid_size=size,
-            max_steps=4*size*size,
-            # Set this to True for maximum speed
-            see_through_walls=True
-        )
+class SimpleEmptyEnv(SimpleMiniGridEnv):
+    def __init__(self, grid_size):
+        super().__init__(grid_size=grid_size)
 
-    def _gen_grid(self, width, height):
-        # Create an empty grid
-        self.grid = Grid(width, height)
+    def reset(self):
+        # Step count since episode start
+        self.step_count = 0
 
-        # Generate the surrounding walls
-        self.grid.wall_rect(0, 0, width, height)
+        # Create grid
+        self.create_grid(self.width, self.height)
+        self.create_outer_wall()
 
-        # Place a goal square in the bottom-right corner
-        self.put_obj(Goal(), width - 2, height - 2)
+        # Select a random initial state and goal
+        self.reset_state_goal()
 
-        # Place the agent
-        if self.agent_start_pos is not None:
-            self.agent_pos = self.agent_start_pos
-            self.agent_dir = self.agent_start_dir
-        else:
-            self.place_agent()
+        # Add goal
+        self.goals = list()
+        self.add_goal(self.goal_pos)
 
-        self.mission = "get to the green goal square"
+        return self.state, self.goal_pos
 
-class EmptyEnv5x5(EmptyEnv):
-    def __init__(self, **kwargs):
-        super().__init__(size=5, **kwargs)
+    @staticmethod
+    def get_n_steps(state, goal, count_turns=False):
+        return get_n_steps(state, goal, count_turns)
 
-class EmptyRandomEnv5x5(EmptyEnv):
+    @staticmethod
+    def optimal_action(state, goal):
+        return optimal_action(state, goal)
+
+
+class SimpleEmptyEnv5x5(SimpleEmptyEnv):
     def __init__(self):
-        super().__init__(size=5, agent_start_pos=None)
+        super().__init__(grid_size=5)
 
-class EmptyEnv6x6(EmptyEnv):
-    def __init__(self, **kwargs):
-        super().__init__(size=6, **kwargs)
 
-class EmptyRandomEnv6x6(EmptyEnv):
+class SimpleEmptyEnv10x10(SimpleEmptyEnv):
     def __init__(self):
-        super().__init__(size=6, agent_start_pos=None)
+        super().__init__(grid_size=10)
 
-class EmptyEnv16x16(EmptyEnv):
-    def __init__(self, **kwargs):
-        super().__init__(size=16, **kwargs)
+
+class SimpleEmptyEnv15x15(SimpleEmptyEnv):
+    def __init__(self):
+        super().__init__(grid_size=15)
+
+
+class SimpleEmptyEnv20x20(SimpleEmptyEnv):
+    def __init__(self):
+        super().__init__(grid_size=20)
+
+
+class SimpleEmptyEnv25x25(SimpleEmptyEnv):
+    def __init__(self):
+        super().__init__(grid_size=25)
+
 
 register(
-    id='MiniGrid-Empty-5x5-v0',
-    entry_point='gym_minigrid.envs:EmptyEnv5x5'
+    _id='Simple-MiniGrid-Empty-5x5-v0',
+    entry_point='gym_minigrid_simple.envs:SimpleEmptyEnv5x5'
 )
 
 register(
-    id='MiniGrid-Empty-Random-5x5-v0',
-    entry_point='gym_minigrid.envs:EmptyRandomEnv5x5'
+    _id='Simple-MiniGrid-Empty-10x10-v0',
+    entry_point='gym_minigrid_simple.envs:SimpleEmptyEnv10x10'
 )
 
 register(
-    id='MiniGrid-Empty-6x6-v0',
-    entry_point='gym_minigrid.envs:EmptyEnv6x6'
+    _id='Simple-MiniGrid-Empty-15x15-v0',
+    entry_point='gym_minigrid_simple.envs:SimpleEmptyEnv15x15'
 )
 
 register(
-    id='MiniGrid-Empty-Random-6x6-v0',
-    entry_point='gym_minigrid.envs:EmptyRandomEnv6x6'
+    _id='Simple-MiniGrid-Empty-20x20-v0',
+    entry_point='gym_minigrid_simple.envs:SimpleEmptyEnv20x20'
 )
 
 register(
-    id='MiniGrid-Empty-8x8-v0',
-    entry_point='gym_minigrid.envs:EmptyEnv'
-)
-
-register(
-    id='MiniGrid-Empty-16x16-v0',
-    entry_point='gym_minigrid.envs:EmptyEnv16x16'
+    _id='Simple-MiniGrid-Empty-25x25-v0',
+    entry_point='gym_minigrid_simple.envs:SimpleEmptyEnv25x25'
 )
