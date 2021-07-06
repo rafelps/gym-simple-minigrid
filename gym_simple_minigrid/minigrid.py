@@ -71,64 +71,24 @@ class WorldObj:
         """Draw this object with the given renderer"""
         raise NotImplementedError
 
-class Goal(WorldObj):
-    def __init__(self):
-        super().__init__('goal', 'green')
-
-    def can_overlap(self):
-        return True
-
-    def render(self, img):
-        fill_coords(img, point_in_rect(0, 1, 0, 1), COLORS[self.color])
-
-class Floor(WorldObj):
-    """
-    Colored floor tile the agent can walk over
-    """
-
-    def __init__(self, color='blue'):
-        super().__init__('floor', color)
-
-    def can_overlap(self):
-        return True
-
-    def render(self, img):
-        # Give the floor a pale color
-        color = COLORS[self.color] / 2
-        fill_coords(img, point_in_rect(0.031, 1, 0.031, 1), color)
-
     def encode(self):
         """Encode the a description of this object as a 2-tuple of integers"""
         return OBJECT_TO_IDX[self.type], COLOR_TO_IDX[self.color]
 
-class Lava(WorldObj):
-    def __init__(self):
-        super().__init__('lava', 'red')
 
-    def can_overlap(self):
-        return True
+class Goal(WorldObj):
+    def __init__(self, level=0):
+        color = f"grad_{min(level, 5)}"
+        super().__init__('goal', color)
 
     def render(self, img):
-        c = (255, 128, 0)
+        fill_coords(img, point_in_rect(0.1, 0.9, 0.1, 0.9), COLORS[self.color])
 
-        # Background color
-        fill_coords(img, point_in_rect(0, 1, 0, 1), c)
-
-        # Little waves
-        for i in range(3):
-            ylo = 0.3 + 0.2 * i
-            yhi = 0.4 + 0.2 * i
-            fill_coords(img, point_in_line(0.1, ylo, 0.3, yhi, r=0.03), (0,0,0))
-            fill_coords(img, point_in_line(0.3, yhi, 0.5, ylo, r=0.03), (0,0,0))
-            fill_coords(img, point_in_line(0.5, ylo, 0.7, yhi, r=0.03), (0,0,0))
-            fill_coords(img, point_in_line(0.7, yhi, 0.9, ylo, r=0.03), (0,0,0))
 
 class Wall(WorldObj):
-    def __init__(self, color='grey'):
+    # def __init__(self, color='l_grey'):
+    def __init__(self, color='dd_grey'):
         super().__init__('wall', color)
-
-    def see_behind(self):
-        return False
 
     def render(self, img):
         fill_coords(img, point_in_rect(0, 1, 0, 1), COLORS[self.color])
