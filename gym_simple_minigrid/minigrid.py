@@ -190,21 +190,13 @@ class Grid:
 
         return img
 
-    def render(
-        self,
-        tile_size,
-        agent_pos=None,
-        agent_dir=None,
-        highlight_mask=None
-    ):
+    def render(self, tile_size, agent_pos=None, agent_dir=None):
         """
         Render this grid at a given scale
-        :param r: target renderer object
         :param tile_size: tile size in pixels
+        :param agent_pos:
+        :param agent_dir:
         """
-
-        if highlight_mask is None:
-            highlight_mask = np.zeros(shape=(self.width, self.height), dtype=np.bool)
 
         # Compute the total grid size
         width_px = self.width * tile_size
@@ -218,103 +210,16 @@ class Grid:
                 cell = self.get(i, j)
 
                 agent_here = np.array_equal(agent_pos, (i, j))
-                tile_img = Grid.render_tile(
-                    cell,
-                    agent_dir=agent_dir if agent_here else None,
-                    highlight=highlight_mask[i, j],
-                    tile_size=tile_size
-                )
+                tile_img = Grid.render_tile(cell, agent_dir=agent_dir if agent_here else None, tile_size=tile_size)
 
                 ymin = j * tile_size
-                ymax = (j+1) * tile_size
+                ymax = (j + 1) * tile_size
                 xmin = i * tile_size
-                xmax = (i+1) * tile_size
+                xmax = (i + 1) * tile_size
                 img[ymin:ymax, xmin:xmax, :] = tile_img
 
         return img
 
-    def encode(self, vis_mask=None):
-        """
-        Produce a compact numpy encoding of the grid
-        """
-
-        if vis_mask is None:
-            vis_mask = np.ones((self.width, self.height), dtype=bool)
-
-        array = np.zeros((self.width, self.height, 3), dtype='uint8')
-
-        for i in range(self.width):
-            for j in range(self.height):
-                if vis_mask[i, j]:
-                    v = self.get(i, j)
-
-                    if v is None:
-                        array[i, j, 0] = OBJECT_TO_IDX['empty']
-                        array[i, j, 1] = 0
-                        array[i, j, 2] = 0
-
-                    else:
-                        array[i, j, :] = v.encode()
-
-        return array
-
-    @staticmethod
-    def decode(array):
-        """
-        Decode an array grid encoding back into a grid
-        """
-
-        width, height, channels = array.shape
-        assert channels == 3
-
-        vis_mask = np.ones(shape=(width, height), dtype=np.bool)
-
-        grid = Grid(width, height)
-        for i in range(width):
-            for j in range(height):
-                type_idx, color_idx, state = array[i, j]
-                v = WorldObj.decode(type_idx, color_idx, state)
-                grid.set(i, j, v)
-                vis_mask[i, j] = (type_idx != OBJECT_TO_IDX['unseen'])
-
-        return grid, vis_mask
-
-    def process_vis(grid, agent_pos):
-        mask = np.zeros(shape=(grid.width, grid.height), dtype=np.bool)
-
-        mask[agent_pos[0], agent_pos[1]] = True
-
-        for j in reversed(range(0, grid.height)):
-            for i in range(0, grid.width-1):
-                if not mask[i, j]:
-                    continue
-
-                cell = grid.get(i, j)
-                if cell and not cell.see_behind():
-                    continue
-
-                mask[i+1, j] = True
-                if j > 0:
-                    mask[i+1, j-1] = True
-                    mask[i, j-1] = True
-
-            for i in reversed(range(1, grid.width)):
-                if not mask[i, j]:
-                    continue
-
-                cell = grid.get(i, j)
-                if cell and not cell.see_behind():
-                    continue
-
-                mask[i-1, j] = True
-                if j > 0:
-                    mask[i-1, j-1] = True
-                    mask[i, j-1] = True
-
-        for j in range(0, grid.height):
-            for i in range(0, grid.width):
-                if not mask[i, j]:
-                    grid.set(i, j, None)
 
         return mask
 
