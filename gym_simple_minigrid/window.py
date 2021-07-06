@@ -63,6 +63,10 @@ class Window:
 
         plt.xlabel(text)
 
+        # Let matplotlib process UI events
+        # This is needed for interactive mode to work properly
+        plt.pause(0.001)
+
     def reg_key_handler(self, key_handler):
         """
         Register a keyboard event handler
