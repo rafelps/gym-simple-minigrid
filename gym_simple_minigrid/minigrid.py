@@ -106,6 +106,8 @@ class Grid:
         self.grid = [None] * width * height
 
     def set(self, i, j, v):
+        # Sets object v into (i, j) position
+        # Returns previous object in this position if any (e.g. stacked subgoals)
         assert 0 <= i < self.width
         assert 0 <= j < self.height
         old_obj = self.grid[j * self.width + i]
@@ -113,6 +115,7 @@ class Grid:
         return old_obj
 
     def get(self, i, j):
+        # Gets object in (i, j) position
         assert 0 <= i < self.width
         assert 0 <= j < self.height
         return self.grid[j * self.width + i]
@@ -147,6 +150,7 @@ class Grid:
         """
 
         # Hash map lookup key for the cache
+        # Object encoding identifies shape and color
         key = (agent_dir,)
         key = obj.encode() + key if obj else key
 
@@ -201,10 +205,10 @@ class Grid:
         # Render the grid
         for j in range(0, self.height):
             for i in range(0, self.width):
-                cell = self.get(i, j)
+                cell_obj = self.get(i, j)
 
                 agent_here = np.array_equal(agent_pos, (i, j))
-                tile_img = Grid.render_tile(cell, agent_dir=agent_dir if agent_here else None, tile_size=tile_size)
+                tile_img = Grid.render_tile(cell_obj, agent_dir=agent_dir if agent_here else None, tile_size=tile_size)
 
                 ymin = j * tile_size
                 ymax = (j + 1) * tile_size
@@ -252,11 +256,10 @@ class SimpleMiniGridEnv(gym.Env):
         # Actions are discrete integer values
         self.action_space = spaces.Discrete(len(self.actions))
 
-        # Observations are dictionaries containing an
-        # encoding of the grid and a textual 'mission' string
+        # Observations are encoded as (x-coor, y-coor, orientation)
         self.observation_space = spaces.Box(
             low=np.array((0, 0, 0)),
-            high=np.array((width - 1, height - 1, 2)),
+            high=np.array((width - 1, height - 1, 3)),
             dtype=np.int
         )
 
@@ -283,6 +286,9 @@ class SimpleMiniGridEnv(gym.Env):
         raise NotImplementedError("Reset should be implemented by each environment type")
 
     def add_goal(self, goal_pos, goal_level=None):
+        # Place a goal at goal_pos
+        # goal_level for visualization purposes
+        # Track previous object al goal_pos to restore visualization once goal is removed
         if goal_level is None:
             goal_level = self.goal_level
         old_obj = self.put_object(Goal(goal_level), goal_pos)
@@ -290,6 +296,7 @@ class SimpleMiniGridEnv(gym.Env):
         return
 
     def remove_goal(self):
+        # Remove last added goal and restore previous object
         goal_pos, obj_ = self.goals.pop()
         self.put_object(obj_, goal_pos)
         return
@@ -356,7 +363,7 @@ class SimpleMiniGridEnv(gym.Env):
 
         if self.step_count >= self.max_steps:
             done = True
-            info['TimeLimit.truncated'] = True
+            info['TimeLimit.truncated'] = True  # TODO automate
 
         if np.array_equal(self.agent_pos, self.goal_pos):
             done = True
@@ -395,6 +402,7 @@ class SimpleMiniGridEnv(gym.Env):
         return
 
     def create_grid(self, width, height):
+        # Add two extra rows/cols for outer walls
         self.grid = Grid(width + 2, height + 2)
         return
 
@@ -402,18 +410,20 @@ class SimpleMiniGridEnv(gym.Env):
         self.grid.wall_rect()
         return
 
-    def put_object(self, obj: WorldObj, pos: np.ndarray):
+    def put_object(self, obj, pos):
         old_obj = self.grid.set(*self.to_grid_coords(pos), obj)
         return old_obj
 
     @staticmethod
-    def to_grid_coords(a: np.ndarray):
+    def to_grid_coords(a):
+        # Add offset so state origin is (0, 0), even if Grid object has extra rows/cols for outer walls
         assert len(a) == 2
         return a + np.array((1, 1))
 
     @property
     def state_goal_mapper(self):
-        def fn(state: np.ndarray):
+        # A goal is defined as (x-coor, y-coor), independently of orientation
+        def fn(state):
             return state[:2]
 
         return fn
