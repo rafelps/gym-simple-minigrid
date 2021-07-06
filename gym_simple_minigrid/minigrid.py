@@ -60,16 +60,19 @@ STATE_TO_IDX = {
 }
 
 # Map of agent direction indices to vectors
-DIR_TO_VEC = [
-    # Pointing right (positive X)
-    np.array((1, 0)),
+DIRS = [
+    # Right (positive X)
+    (1, 0),
     # Down (positive Y)
-    np.array((0, 1)),
-    # Pointing left (negative X)
-    np.array((-1, 0)),
+    (0, 1),
+    # Left (negative X)
+    (-1, 0),
     # Up (negative Y)
-    np.array((0, -1)),
+    (0, -1),
 ]
+DIR_TO_VEC = {i: np.array(d) for i, d in enumerate(DIRS)}
+# VEC_TO_DIR = {d: i for i, d in enumerate(DIRS)}
+
 
 class WorldObj:
     """
