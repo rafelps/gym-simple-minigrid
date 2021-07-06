@@ -390,8 +390,8 @@ class SimpleMiniGridEnv(gym.Env):
         img = self.grid.render(tile_size, self.to_grid_coords(self.agent_pos), self.agent_dir)
 
         if mode == 'human':
-            # TODO add info, could be passed through a param
-            # self.window.set_caption(self.mission)
+            # TODO add real-time info about last step (obs, action, reward, ...)
+            # self.window.set_caption(_)
             self.window.show_img(img)
 
         return img
