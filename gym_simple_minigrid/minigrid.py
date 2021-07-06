@@ -372,7 +372,7 @@ class SimpleMiniGridEnv(gym.Env):
 
         return self.state, reward, done, info
 
-    def render(self, mode='human', close=False, highlight=True, tile_size=TILE_PIXELS):
+    def render(self, mode='human', close=False, tile_size=32):
         """
         Render the whole-grid human view
         """
@@ -384,49 +384,15 @@ class SimpleMiniGridEnv(gym.Env):
 
         if mode == 'human' and not self.window:
             import gym_minigrid.window
-            self.window = gym_minigrid.window.Window('gym_minigrid')
+            self.window = gym_minigrid.window.Window(self.name)
             self.window.show(block=False)
 
-        # Compute which cells are visible to the agent
-        _, vis_mask = self.gen_obs_grid()
-
-        # Compute the world coordinates of the bottom-left corner
-        # of the agent's view area
-        f_vec = self.dir_vec
-        r_vec = self.right_vec
-        top_left = self.agent_pos + f_vec * (self.agent_view_size-1) - r_vec * (self.agent_view_size // 2)
-
-        # Mask of which cells to highlight
-        highlight_mask = np.zeros(shape=(self.width, self.height), dtype=np.bool)
-
-        # For each cell in the visibility mask
-        for vis_j in range(0, self.agent_view_size):
-            for vis_i in range(0, self.agent_view_size):
-                # If this cell is not visible, don't highlight it
-                if not vis_mask[vis_i, vis_j]:
-                    continue
-
-                # Compute the world coordinates of this cell
-                abs_i, abs_j = top_left - (f_vec * vis_j) + (r_vec * vis_i)
-
-                if abs_i < 0 or abs_i >= self.width:
-                    continue
-                if abs_j < 0 or abs_j >= self.height:
-                    continue
-
-                # Mark this cell to be highlighted
-                highlight_mask[abs_i, abs_j] = True
-
         # Render the whole grid
-        img = self.grid.render(
-            tile_size,
-            self.agent_pos,
-            self.agent_dir,
-            highlight_mask=highlight_mask if highlight else None
-        )
+        img = self.grid.render(tile_size, self.to_grid_coords(self.agent_pos), self.agent_dir)
 
         if mode == 'human':
-            self.window.set_caption(self.mission)
+            # TODO add info, could be passed through a param
+            # self.window.set_caption(self.mission)
             self.window.show_img(img)
 
         return img
@@ -435,3 +401,27 @@ class SimpleMiniGridEnv(gym.Env):
         if self.window:
             self.window.close()
         return
+
+    def create_grid(self, width, height):
+        self.grid = Grid(width + 2, height + 2)
+        return
+
+    def create_outer_wall(self):
+        self.grid.wall_rect()
+        return
+
+    def put_object(self, obj: WorldObj, pos: np.ndarray):
+        old_obj = self.grid.set(*self.to_grid_coords(pos), obj)
+        return old_obj
+
+    @staticmethod
+    def to_grid_coords(a: np.ndarray):
+        assert len(a) == 2
+        return a + np.array((1, 1))
+
+    @property
+    def state_goal_mapper(self):
+        def fn(state: np.ndarray):
+            return state[:2]
+
+        return fn
