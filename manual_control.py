@@ -1,40 +1,50 @@
 #!/usr/bin/env python3
 
-import time
 import argparse
-import numpy as np
 import gym
-import gym_minigrid
-from gym_minigrid.wrappers import *
-from gym_minigrid.window import Window
+from gym_simple_minigrid.window import Window
 
-def redraw(img):
-    if not args.agent_view:
-        img = env.render('rgb_array', tile_size=args.tile_size)
 
+class EpisodeReward:
+    def __init__(self):
+        self.last = self.reward = None
+        self.reset()
+
+    def increment(self, r):
+        self.last = r
+        self.reward += r
+
+    def reset(self):
+        self.reward = self.last = 0
+
+
+def redraw():
+    img = env.render('rgb_array', tile_size=args.tile_size)
     window.show_img(img)
+    window.set_caption(f'Step {env.step_count:3}.        Last reward = {er.last:2}    Accumulated reward = '
+                       f'{er.reward:3}')
+
 
 def reset():
     if args.seed != -1:
         env.seed(args.seed)
 
-    obs = env.reset()
+    env.reset()
+    er.reset()
 
-    if hasattr(env, 'mission'):
-        print('Mission: %s' % env.mission)
-        window.set_caption(env.mission)
+    redraw()
 
-    redraw(obs)
 
 def step(action):
     obs, reward, done, info = env.step(action)
-    print('step=%s, reward=%.2f' % (env.step_count, reward))
+    er.increment(reward)
+    print(f'\tstep = {env.step_count}, accumulated reward = {er.reward}')
 
+    redraw()
     if done:
-        print('done!')
+        print(f'done! episode reward = {er.reward}')
         reset()
-    else:
-        redraw(obs)
+
 
 def key_handler(event):
     print('pressed', event.key)
@@ -57,31 +67,17 @@ def key_handler(event):
         step(env.actions.forward)
         return
 
-    # Spacebar
-    if event.key == ' ':
-        step(env.actions.toggle)
-        return
-    if event.key == 'pageup':
-        step(env.actions.pickup)
-        return
-    if event.key == 'pagedown':
-        step(env.actions.drop)
-        return
-
-    if event.key == 'enter':
-        step(env.actions.done)
-        return
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--env",
     help="gym environment to load",
-    default='MiniGrid-MultiRoom-N6-v0'
+    default='Simple-MiniGrid-FourRooms-15x15-v0'
 )
 parser.add_argument(
     "--seed",
     type=int,
-    help="random seed to generate the environment with",
+    help="if provided, the same exact environment will always be generated",
     default=-1
 )
 parser.add_argument(
@@ -90,23 +86,16 @@ parser.add_argument(
     help="size at which to render tiles",
     default=32
 )
-parser.add_argument(
-    '--agent_view',
-    default=False,
-    help="draw the agent sees (partially observable view)",
-    action='store_true'
-)
 
 args = parser.parse_args()
 
+# env and window as global variables
 env = gym.make(args.env)
 
-if args.agent_view:
-    env = RGBImgPartialObsWrapper(env)
-    env = ImgObsWrapper(env)
-
-window = Window('gym_minigrid - ' + args.env)
+window = Window(f"Manual Control for {env.name}")
 window.reg_key_handler(key_handler)
+
+er = EpisodeReward()
 
 reset()
 
