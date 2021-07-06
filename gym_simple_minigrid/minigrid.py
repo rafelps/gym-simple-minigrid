@@ -282,8 +282,6 @@ class SimpleMiniGridEnv(gym.Env):
     def reset(self):
         raise NotImplementedError("Reset should be implemented by each environment type")
 
-
-
     def add_goal(self, goal_pos, goal_level=None):
         if goal_level is None:
             goal_level = self.goal_level
@@ -377,8 +375,8 @@ class SimpleMiniGridEnv(gym.Env):
             return
 
         if mode == 'human' and not self.window:
-            import gym_minigrid.window
-            self.window = gym_minigrid.window.Window(self.name)
+            from .window import Window
+            self.window = Window(self.name)
             self.window.show(block=False)
 
         # Render the whole grid
