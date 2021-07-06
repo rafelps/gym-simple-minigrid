@@ -12,27 +12,28 @@ TILE_PIXELS = 32
 
 # Map of color names to RGB values
 COLORS = {
-    'red'   : np.array([255, 0, 0]),
-    'green' : np.array([0, 255, 0]),
-    'blue'  : np.array([0, 0, 255]),
-    'purple': np.array([112, 39, 195]),
-    'yellow': np.array([255, 255, 0]),
-    'grey'  : np.array([100, 100, 100])
-}
+    'black': np.array((0, 0, 0)),
+    'red': np.array((255, 0, 0)),
+    'green': np.array((0, 255, 0)),
+    'blue': np.array((0, 0, 255)),
+    'purple': np.array((112, 39, 195)),
+    'yellow': np.array((255, 255, 0)),
+    'dd_grey': np.array((50, 50, 50)),
+    'd_grey': np.array((100, 100, 100)),
+    'l_grey': np.array((200, 200, 200)),
 
-COLOR_NAMES = sorted(list(COLORS.keys()))
+    # Red gradient
+    # 'grad_0':  np.array((255, 0, 0)),
+    'grad_0': np.array((0, 0, 0)),
+    'grad_1': np.array((255, 55, 0)),
+    'grad_2': np.array((255, 99, 0)),
+    'grad_3': np.array((254, 145, 28)),
+    'grad_4': np.array((252, 195, 86)),
+    'grad_5': np.array((255, 237, 150)),
+}
 
 # Used to map colors to integers
-COLOR_TO_IDX = {
-    'red'   : 0,
-    'green' : 1,
-    'blue'  : 2,
-    'purple': 3,
-    'yellow': 4,
-    'grey'  : 5
-}
-
-IDX_TO_COLOR = dict(zip(COLOR_TO_IDX.values(), COLOR_TO_IDX.keys()))
+COLOR_TO_IDX = {k: i for i, k in enumerate(COLORS)}
 
 # Map of object type to integers
 OBJECT_TO_IDX = {
