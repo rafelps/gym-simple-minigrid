@@ -1,14 +1,8 @@
-import math
-import hashlib
 import gym
 from enum import IntEnum
-import numpy as np
-from gym import error, spaces, utils
+from gym import spaces
 from gym.utils import seeding
 from .rendering import *
-
-# Size in pixels of a tile in the full-scale human view
-TILE_PIXELS = 32
 
 # Map of color names to RGB values
 COLORS = {
