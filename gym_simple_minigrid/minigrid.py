@@ -111,41 +111,16 @@ class Grid:
 
         self.grid = [None] * width * height
 
-    def __contains__(self, key):
-        if isinstance(key, WorldObj):
-            for e in self.grid:
-                if e is key:
-                    return True
-        elif isinstance(key, tuple):
-            for e in self.grid:
-                if e is None:
-                    continue
-                if (e.color, e.type) == key:
-                    return True
-                if key[0] is None and key[1] == e.type:
-                    return True
-        return False
-
-    def __eq__(self, other):
-        grid1  = self.encode()
-        grid2 = other.encode()
-        return np.array_equal(grid2, grid1)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def copy(self):
-        from copy import deepcopy
-        return deepcopy(self)
-
     def set(self, i, j, v):
-        assert i >= 0 and i < self.width
-        assert j >= 0 and j < self.height
+        assert 0 <= i < self.width
+        assert 0 <= j < self.height
+        old_obj = self.grid[j * self.width + i]
         self.grid[j * self.width + i] = v
+        return old_obj
 
     def get(self, i, j):
-        assert i >= 0 and i < self.width
-        assert j >= 0 and j < self.height
+        assert 0 <= i < self.width
+        assert 0 <= j < self.height
         return self.grid[j * self.width + i]
 
     def horz_wall(self, x, y, length=None, obj_type=Wall):
@@ -160,63 +135,25 @@ class Grid:
         for j in range(0, length):
             self.set(x, y + j, obj_type())
 
-    def wall_rect(self, x, y, w, h):
+    def wall_rect(self, x=0, y=0, w=None, h=None):
+        if w is None:
+            w = self.width
+        if h is None:
+            h = self.height
+
         self.horz_wall(x, y, w)
-        self.horz_wall(x, y+h-1, w)
+        self.horz_wall(x, y + h - 1, w)
         self.vert_wall(x, y, h)
-        self.vert_wall(x+w-1, y, h)
-
-    def rotate_left(self):
-        """
-        Rotate the grid to the left (counter-clockwise)
-        """
-
-        grid = Grid(self.height, self.width)
-
-        for i in range(self.width):
-            for j in range(self.height):
-                v = self.get(i, j)
-                grid.set(j, grid.height - 1 - i, v)
-
-        return grid
-
-    def slice(self, topX, topY, width, height):
-        """
-        Get a subset of the grid
-        """
-
-        grid = Grid(width, height)
-
-        for j in range(0, height):
-            for i in range(0, width):
-                x = topX + i
-                y = topY + j
-
-                if x >= 0 and x < self.width and \
-                   y >= 0 and y < self.height:
-                    v = self.get(x, y)
-                else:
-                    v = Wall()
-
-                grid.set(i, j, v)
-
-        return grid
+        self.vert_wall(x + w - 1, y, h)
 
     @classmethod
-    def render_tile(
-        cls,
-        obj,
-        agent_dir=None,
-        highlight=False,
-        tile_size=TILE_PIXELS,
-        subdivs=3
-    ):
+    def render_tile(cls, obj, agent_dir=None, tile_size=32, subdivs=3, thick=0.031):
         """
         Render a tile and cache the result
         """
 
         # Hash map lookup key for the cache
-        key = (agent_dir, highlight, tile_size)
+        key = (agent_dir,)
         key = obj.encode() + key if obj else key
 
         if key in cls.tile_cache:
@@ -224,28 +161,26 @@ class Grid:
 
         img = np.zeros(shape=(tile_size * subdivs, tile_size * subdivs, 3), dtype=np.uint8)
 
-        # Draw the grid lines (top and left edges)
-        fill_coords(img, point_in_rect(0, 0.031, 0, 1), (100, 100, 100))
-        fill_coords(img, point_in_rect(0, 1, 0, 0.031), (100, 100, 100))
+        # Draw background
+        fill_coords(img, point_in_rect(0, 1, 0, 1), COLORS['d_grey'])
 
-        if obj != None:
+        # Draw the grid lines
+        fill_coords(img, point_in_rect(0, thick, 0, 1), COLORS['l_grey'])
+        fill_coords(img, point_in_rect(0, 1, 0, thick), COLORS['l_grey'])
+        fill_coords(img, point_in_rect(1 - thick, 1, 0, 1), COLORS['l_grey'])
+        fill_coords(img, point_in_rect(0, 1, 1 - thick, 1), COLORS['l_grey'])
+
+        if obj is not None:
             obj.render(img)
 
         # Overlay the agent on top
         if agent_dir is not None:
-            tri_fn = point_in_triangle(
-                (0.12, 0.19),
-                (0.87, 0.50),
-                (0.12, 0.81),
-            )
+            tri_fn = point_in_triangle((0.12, 0.19), (0.87, 0.50), (0.12, 0.81))
 
             # Rotate the agent based on its direction
-            tri_fn = rotate_fn(tri_fn, cx=0.5, cy=0.5, theta=0.5*math.pi*agent_dir)
-            fill_coords(img, tri_fn, (255, 0, 0))
-
-        # Highlight the cell if needed
-        if highlight:
-            highlight_img(img)
+            tri_fn = rotate_fn(tri_fn, cx=0.5, cy=0.5, theta=0.5 * math.pi * agent_dir)
+            # Agent color
+            fill_coords(img, tri_fn, COLORS['green'])
 
         # Downsample the image to perform supersampling/anti-aliasing
         img = downsample(img, subdivs)
