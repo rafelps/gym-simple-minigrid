@@ -95,9 +95,9 @@ shows how the agent solves some episodes (each one with a different initial stat
 intermediate subgoals that guide the solving (all part of a RL algorithm).
 
 <p align="center">
-  <img src="figures/SimpleEmptyEnv15x15t.png" height="240" alt="Simple-MiniGrid-Empty-15x15-v0 img">
+  <img src="figures/SimpleEmptyEnv15x15.png" height="240" alt="Simple-MiniGrid-Empty-15x15-v0 img">
   &emsp;&emsp;&emsp;&emsp;&emsp;
-  <img src="figures/SimpleEmptyEnv15x15t.gif" width="240" alt="Simple-MiniGrid-Empty-15x15-v0 gif">
+  <img src="figures/SimpleEmptyEnv15x15.gif" width="240" alt="Simple-MiniGrid-Empty-15x15-v0 gif">
 </p>
 
 ### Four Rooms environment
@@ -118,7 +118,7 @@ The following image and GIF shows the 15x15 version of our Four Rooms environmen
 several random initializations.
 
 <p align="center">
-  <img src="figures/SimpleFourRoomsEnv15x15t.png" height="240" alt="Simple-MiniGrid-FourRooms-15x15-v0 img">
+  <img src="figures/SimpleFourRoomsEnv15x15.png" height="240" alt="Simple-MiniGrid-FourRooms-15x15-v0 img">
   &emsp;&emsp;&emsp;&emsp;&emsp;
-  <img src="figures/SimpleFourRoomsEnv15x15t.gif" width="240" alt="Simple-MiniGrid-FourRooms-15x15-v0 gif">
+  <img src="figures/SimpleFourRoomsEnv15x15.gif" width="240" alt="Simple-MiniGrid-FourRooms-15x15-v0 gif">
 </p>
