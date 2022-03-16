@@ -341,7 +341,7 @@ class SimpleMiniGridEnv(gym.Env):
         self.step_count += 1
         if current_state:
             self.agent_pos = current_state[0:2]
-            self.agent_dir = [-1]
+            self.agent_dir = current_state[-1]
         reward = -1
         done = False
         info = {}
