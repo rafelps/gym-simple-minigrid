@@ -337,9 +337,11 @@ class SimpleMiniGridEnv(gym.Env):
 
         return
 
-    def step(self, action):
+    def step(self, action, current_state=None):
         self.step_count += 1
-
+        if current_state:
+            self.agent_pos = current_state[0:2]
+            self.agent_dir = [-1]
         reward = -1
         done = False
         info = {}
